@@ -1,11 +1,9 @@
-from django.contrib.auth import get_user_model
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 
-from ..models import Group, Post
+from http import HTTPStatus
 
-
-User = get_user_model()
+from ..models import Group, Post, User
 
 
 class UrlsTest(TestCase):
@@ -21,7 +19,6 @@ class UrlsTest(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый пост',
-            id=1,
         )
 
     def setUp(self):
@@ -31,45 +28,49 @@ class UrlsTest(TestCase):
 
     def test_index_url_exists_at_desred_location(self):
         response = self.guest_client.get('')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_group_url_exists_at_desred_location(self):
         response = self.guest_client.get(
             reverse('posts:group_list', kwargs={'slug': UrlsTest.group.slug}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_post_detail_url_exists_at_desred_location(self):
         response = self.guest_client.get(
             reverse('posts:post_detail', kwargs={'post_id': UrlsTest.post.id}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_profile_url_exists_at_desred_location(self):
         response = self.guest_client.get(
             reverse('posts:profile', kwargs={'username': UrlsTest.user}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_post_url_exists_at_desred_location(self):
         response = self.authorized_client.get('/create/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_post_edit_exists_at_desred_location(self):
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': UrlsTest.post.id}))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_unexisting_page_exists_at_desired_location(self):
         response = self.guest_client.get('/unexisting_page/')
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         templates_url_names = {
-            '': 'posts/index.html',
-            '/group/test_slug/': 'posts/group_list.html',
-            '/profile/auth/': 'posts/profile.html',
-            '/posts/1/': 'posts/post_detail.html',
-            '/create/': 'posts/create_post.html',
-            '/posts/1/edit/': 'posts/create_post.html',
+            reverse('posts:index'): 'posts/index.html',
+            reverse('posts:group_list', kwargs={'slug': UrlsTest.group.slug}):
+            'posts/group_list.html',
+            reverse('posts:profile', kwargs={'username': UrlsTest.user}):
+            'posts/profile.html',
+            reverse('posts:post_detail', kwargs={'post_id': self.post.id}):
+            'posts/post_detail.html',
+            reverse('posts:post_edit', kwargs={'post_id': UrlsTest.post.id}):
+            'posts/create_post.html',
+            reverse('posts:post_create'): 'posts/create_post.html',
         }
         for address, template in templates_url_names.items():
             with self.subTest(address=address):

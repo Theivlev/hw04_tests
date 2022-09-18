@@ -1,11 +1,10 @@
-# deals/tests/tests_form.py
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.contrib.auth import get_user_model
 
-from posts.models import Group, Post
+from http import HTTPStatus
 
-User = get_user_model()
+from posts.forms import PostForm
+from posts.models import Group, Post, User
 
 
 class FormTest(TestCase):
@@ -18,15 +17,15 @@ class FormTest(TestCase):
             slug='form_slug',
             description='описание формы',
         )
+        cls.form = PostForm()
 
     def setUp(self):
-        # Создаем неавторизованный клиент
-        self.guest_client = Client()
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(FormTest.user)
 
     def test_create_post(self):
+        """при создания поста создаётся новая запись в базе данных"""
         tasks_post_count = Post.objects.count()
         form_data = {
             'text': 'Текст для теста форм',
@@ -37,7 +36,7 @@ class FormTest(TestCase):
             data=form_data,
             follow=True
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(Post.objects.count(), tasks_post_count + 1)
         self.assertTrue(
             Post.objects.filter(
@@ -47,24 +46,73 @@ class FormTest(TestCase):
         )
 
     def test_create_post_edit(self):
-        """при создания поста создаётся новая запись в базе данных"""
+        """при редактировании поста происходит изменение в базе данных."""
         self.post = Post.objects.create(
             author=FormTest.user,
             text='Тестовый текст',
-            id=1,
             group=self.group,
+        )
+        self.test_group = Group.objects.create(
+            title='W2',
+            slug='test_slug_2',
+            description='Тестовое описание_2'
         )
         form_data = {
             'text': 'Текст для теста форм_2',
+            'group': self.test_group.id,
         }
         response = self.authorized_client.post(
             reverse('posts:post_edit', kwargs={'post_id': self.post.id}),
             data=form_data,
             follow=True
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertTrue(
             Post.objects.filter(
                 text='Текст для теста форм_2',
+                group=self.test_group.id,
             ).exists()
         )
+        self.assertFalse(
+            Post.objects.filter(
+                text='Текст для теста форм_2',
+                group=self.group,
+            ).exists()
+        )
+
+    def test_post_edit_for_guest_client(self):
+        """Страница create_post недоступна неавторизованному клиенту"""
+        response = self.guest_client.post(
+            reverse('posts:post_create'),
+            follow=True
+        )
+        self.assertRedirects(
+            response, '/auth/login/?next=/create/')
+
+    def test_post_edit_for_guest_client(self):
+        """Страница post_edit недоступна неавторизованному клиенту"""
+        self.post = Post.objects.create(
+            author=FormTest.user,
+            text='Тестовый текст',
+            group=self.group,
+        )
+        response = self.guest_client.post(
+            reverse('posts:post_edit', kwargs={'post_id': self.post.id}),
+            follow=True
+        )
+        self.assertRedirects(
+            response, f'/auth/login/?next=/posts/{self.post.id}/edit/')
+
+    def test_title_label(self):
+        """labels формы совпадает с ожидаемым."""
+        for field, expected_value in FormTest.form.Meta.labels.items():
+            with self.subTest(field=field):
+                self.assertEqual(
+                    FormTest.form.fields[field].label, expected_value)
+
+    def test_title_help_text(self):
+        """help_text формы совпадает с ожидаемым."""
+        for field, expected_value in FormTest.form.Meta.help_texts.items():
+            with self.subTest(field=field):
+                self.assertEqual(
+                    FormTest.form.fields[field].help_text, expected_value)

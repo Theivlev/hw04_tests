@@ -1,12 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
 from django import forms
 
-from ..models import Group, Post
-
-
-User = get_user_model()
+from ..models import Group, Post, User
 
 
 class ViewsTest(TestCase):
@@ -25,7 +21,6 @@ class ViewsTest(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый текст',
-            id=1,
             group=cls.group,
         )
         for i in range(2, 14):
@@ -134,7 +129,6 @@ class ViewsTest(TestCase):
         self.post_one = Post.objects.create(
             author=self.user,
             text='Тестовый текст1',
-            id=15,
             group=self.test_group,
         )
         self.authorized_client1 = Client()

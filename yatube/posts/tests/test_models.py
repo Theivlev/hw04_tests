@@ -29,5 +29,15 @@ class PostModelTest(TestCase):
                          'работает неверно')
         post = PostModelTest.post
         test_text = str(post)
-        self.assertEqual(test_text, post.text[:15], 'метод __str__ у поста'
-                         'работает неверно')
+        self.assertEqual(test_text, post.text[:Post.SUMBOLS_MAX],
+                         'метод __str__ у поста работает неверно')
+
+    def test_title_label(self):
+        """verbose_name поля title совпадает с ожидаемым."""
+        verbose = Post._meta.get_field('text').verbose_name
+        self.assertEqual(verbose, 'Текст')
+
+    def test_help_text(self):
+        """help_text  совпадает с ожидаемым."""
+        help_text = Post._meta.get_field('text').help_text
+        self.assertEqual(help_text, 'Введите текст поста')

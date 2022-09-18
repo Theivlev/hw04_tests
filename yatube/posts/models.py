@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+
 User = get_user_model()
 
 
@@ -18,7 +19,8 @@ class Post(models.Model):
     OUTPUT_OF_POSTS: int = 10
     SUMBOLS_MAX: int = 15
 
-    text = models.TextField(verbose_name='Текст')
+    text = models.TextField(verbose_name='Текст',
+                            help_text='Введите текст поста')
     pub_date = models.DateTimeField(auto_now_add=True,
                                     verbose_name='Дата публикации')
     author = models.ForeignKey(
@@ -33,11 +35,12 @@ class Post(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         related_name='posts',
-        verbose_name='Группа'
+        verbose_name='Группа',
+        help_text='Группа, к которой будет относиться пост',
     )
 
     def __str__(self):
         return self.text[:Post.SUMBOLS_MAX]
 
     class Meta:
-        ordering = ['-pub_date', '-pk']
+        ordering = ('-pub_date', '-pk')
