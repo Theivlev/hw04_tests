@@ -27,34 +27,43 @@ class UrlsTest(TestCase):
         self.authorized_client.force_login(UrlsTest.user)
 
     def test_index_url_exists_at_desred_location(self):
+        """Проверка доступности адреса главной странице."""
         response = self.guest_client.get('')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_group_url_exists_at_desred_location(self):
+        """Проверка доступности адреса /posts/group/<slug:slug>/."""
         response = self.guest_client.get(
             reverse('posts:group_list', kwargs={'slug': UrlsTest.group.slug}))
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_post_detail_url_exists_at_desred_location(self):
+        """Проверка доступности адреса /posts/create/
+            для неавторизованного пользователя"""
         response = self.guest_client.get(
             reverse('posts:post_detail', kwargs={'post_id': UrlsTest.post.id}))
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_profile_url_exists_at_desred_location(self):
+        """Проверка доступности адреса /page/about/."""
         response = self.guest_client.get(
             reverse('posts:profile', kwargs={'username': UrlsTest.user}))
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_post_url_exists_at_desred_location(self):
+        """Проверка доступности адреса /posts/create/
+            для авторизованного пользователя"""
         response = self.authorized_client.get('/create/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_post_edit_exists_at_desred_location(self):
+        """Проверка доступности адреса /posts/post_detail/."""
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': UrlsTest.post.id}))
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_unexisting_page_exists_at_desired_location(self):
+        """Проверка недоступности  по несуществующему адресу"""
         response = self.guest_client.get('/unexisting_page/')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 

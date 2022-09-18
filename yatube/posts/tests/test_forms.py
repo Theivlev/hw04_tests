@@ -86,10 +86,12 @@ class FormTest(TestCase):
             reverse('posts:post_create'),
             follow=True
         )
+        users_login = reverse('users:login')
+        post_create = reverse('posts:post_create')
         self.assertRedirects(
-            response, '/auth/login/?next=/create/')
+            response, f'{users_login}?next={post_create}')
 
-    def test_post_edit_for_guest_client(self):
+    def test_post_edit_for_guest2_client(self):
         """Страница post_edit недоступна неавторизованному клиенту"""
         self.post = Post.objects.create(
             author=FormTest.user,
@@ -100,8 +102,11 @@ class FormTest(TestCase):
             reverse('posts:post_edit', kwargs={'post_id': self.post.id}),
             follow=True
         )
+        users_login = reverse('users:login')
+        post_edit = reverse('posts:post_edit',
+                            kwargs={'post_id': self.post.id})
         self.assertRedirects(
-            response, f'/auth/login/?next=/posts/{self.post.id}/edit/')
+            response, f'{users_login}?next={post_edit}')
 
     def test_title_label(self):
         """labels формы совпадает с ожидаемым."""
