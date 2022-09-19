@@ -1,6 +1,7 @@
-from django.test import Client, TestCase
-
 from http import HTTPStatus
+
+from django.test import Client, TestCase
+from django.urls import reverse
 
 
 class UrlsTestAbout(TestCase):
@@ -10,8 +11,8 @@ class UrlsTestAbout(TestCase):
     def test_author_tech_exists_at_desred_location(self):
         """Проверка доступности адресов в приложении about"""
         templates_url_names = {
-            '/about/author/': HTTPStatus.OK,
-            '/about/tech/': HTTPStatus.OK,
+            reverse('about:author'): HTTPStatus.OK,
+            reverse('about:tech'): HTTPStatus.OK,
         }
         for address, status in templates_url_names.items():
             with self.subTest(address=address):
